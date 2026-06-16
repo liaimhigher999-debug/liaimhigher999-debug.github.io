@@ -16,11 +16,14 @@ const requireHttps = (name) => {
   return value
 }
 
+const escapeCmdArg = (arg) => (/\s/.test(arg) ? `"${arg.replaceAll('"', '""')}"` : arg)
+
 const run = (command, args, label) => {
   console.log(`\n[release] ${label}`)
-  const npmCli = join(dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js')
-  const executable = command === 'npm' ? process.execPath : command
-  const commandArgs = command === 'npm' ? [npmCli, ...args] : args
+  const executable = command === 'npm' && process.platform === 'win32' ? 'cmd.exe' : command
+  const commandArgs = command === 'npm' && process.platform === 'win32'
+    ? ['/d', '/s', '/c', ['npm', ...args].map(escapeCmdArg).join(' ')]
+    : args
   const result = spawnSync(executable, commandArgs, {
     cwd: root,
     env: process.env,
