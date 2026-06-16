@@ -16,29 +16,26 @@ The fan nickname, journey progress, selected ticket style, and audio settings ar
 
 ## Media Deployment
 
-Do not commit concert video files to this repository. The release build is designed to publish the static site shell separately from video media:
+Do not commit concert video files to this repository. The public release build uses Bilibili embedded players by default. The local MP4 workflow remains available for private development and testing.
 
-- static site: GitHub Pages, Cloudflare Pages, or another static host
-- video media: an HTTPS object storage/CDN origin that supports HTTP Range requests
-
-For production, set:
+For the public GitHub Pages build:
 
 ```powershell
 $env:VITE_PUBLIC_SITE_URL='https://your-final-domain'
-$env:VITE_MEDIA_BASE_URL='https://your-media-domain/live/v1'
+$env:VITE_LIVE_VIDEO_PROVIDER='bilibili'
 npm run build:release
 ```
+
+For a private/local MP4 release build, also set `VITE_LIVE_VIDEO_PROVIDER=local` and `VITE_MEDIA_BASE_URL` to an HTTPS media prefix that supports Range requests.
 
 The release script fails if `dist/` contains MP4 files or unresolved release tokens.
 
 ## GitHub Pages
 
-This repository includes `.github/workflows/deploy-pages.yml`. After creating the GitHub repository:
+This repository includes `.github/workflows/deploy-pages.yml`. The public GitHub Pages build uses Bilibili embeds by default, so it does not need an R2 media domain.
 
 1. Enable GitHub Pages with **Source: GitHub Actions**.
-2. Add repository variables:
-   - `VITE_MEDIA_BASE_URL`: final HTTPS media prefix
-   - `VITE_PUBLIC_SITE_URL`: optional override when using a custom domain
+2. Optional: add `VITE_PUBLIC_SITE_URL` only when using a custom domain.
 3. Push `main`.
 
 Use a root Pages site such as `https://<username>.github.io/` or a custom domain. A project path such as `https://<username>.github.io/<repo>/` needs extra base-path work because the current app uses root-relative static asset URLs.

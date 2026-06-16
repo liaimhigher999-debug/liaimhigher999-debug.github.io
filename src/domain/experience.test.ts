@@ -48,6 +48,16 @@ const msgVideoFilenames = [
   '07-when-we-are-together.mp4',
 ]
 
+const msgBvids = [
+  'BV1Lej36qE3j',
+  'BV1dYj36TEBs',
+  'BV1dYj36TESJ',
+  'BV1tDj36dExq',
+  'BV1mDj36REnd',
+  'BV1u2j36bEsM',
+  'BV1u2j36bExX',
+]
+
 const exploreTwoClues = (state: ReturnType<typeof createInitialExperience>) => {
   const withFirst = experienceReducer(state, { type: 'EXPLORE_CLUE', clueId: 'cover' })
   return experienceReducer(withFirst, { type: 'EXPLORE_CLUE', clueId: 'lyrics' })
@@ -101,13 +111,16 @@ describe('layered-room experience state', () => {
     )
   })
 
-  it('defines local mp4 video and entrance effect data for each live scene', () => {
+  it('defines local mp4 video, Bilibili embeds and entrance effect data for each live scene', () => {
     expect(tourScenes.map((scene) => scene.entranceEffect)).toEqual(msgEntranceEffects)
     expect(tourScenes.map((scene) => scene.liveVideo.sources.high.split('/').slice(-1)[0])).toEqual(msgVideoFilenames)
+    expect(tourScenes.map((scene) => scene.liveVideo.embed?.bvid)).toEqual(msgBvids)
     expect(tourScenes.every((scene) => scene.liveVideo.sources.high.includes('/1080/'))).toBe(true)
     expect(tourScenes.every((scene) => scene.liveVideo.sources.standard.includes('/720/'))).toBe(true)
     expect(tourScenes.every((scene) => scene.liveVideo.enabled)).toBe(true)
     expect(tourScenes.every((scene) => scene.liveVideo.kind === 'video')).toBe(true)
+    expect(tourScenes.every((scene) => scene.liveVideo.embed?.provider === 'bilibili')).toBe(true)
+    expect(tourScenes.every((scene) => scene.liveVideo.embed?.src.startsWith('https://player.bilibili.com/'))).toBe(true)
     expect(tourScenes.every((scene) => scene.liveVideo.sources.high.endsWith('.mp4'))).toBe(true)
     expect(tourScenes.every((scene) => scene.liveVideo.sources.standard.endsWith('.mp4'))).toBe(true)
     expect(tourScenes.every((scene) => scene.liveVideo.poster.endsWith('.jpg'))).toBe(true)

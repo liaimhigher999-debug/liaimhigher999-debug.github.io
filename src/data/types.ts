@@ -19,6 +19,12 @@ export type MediaAsset = {
     high: string
     standard: string
   }
+  embed?: {
+    provider: 'bilibili'
+    bvid: string
+    page: number
+    src: string
+  }
   poster: string
   enabled: boolean
   alt: string

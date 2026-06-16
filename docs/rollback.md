@@ -1,6 +1,6 @@
 # Production Rollback
 
-The site shell and video media are versioned independently so either can be rolled back without replacing the other.
+The public site shell and Bilibili embed configuration are versioned in Git. Local MP4 media remains a private development path and is not published with GitHub Pages.
 
 ## Site Rollback
 
@@ -10,12 +10,12 @@ The site shell and video media are versioned independently so either can be roll
 
 ## Media Rollback
 
-1. Keep every published media set under an immutable version prefix such as `/live/v1/` or `/live/v2/`.
-2. Restore `VITE_MEDIA_BASE_URL` to the last verified prefix.
-3. Rebuild and deploy only the site shell.
-4. Run `npm run media:verify:remote` against the restored prefix.
+1. If a Bilibili upload is removed or replaced, update the affected BVID in `src/data/experience.ts`.
+2. Rebuild and deploy the site shell.
+3. Confirm the affected embedded player loads from the public page.
+4. For a private MP4 deployment only, restore `VITE_MEDIA_BASE_URL` to the last verified prefix and run `npm run media:verify:remote`.
 
-Never overwrite a production media prefix in place. Upload edited videos under a new version so cached files and rollback remain deterministic.
+Never commit generated MP4 files to the public repository.
 
 ## Emergency Checks
 

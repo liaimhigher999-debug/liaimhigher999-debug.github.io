@@ -136,7 +136,9 @@ const copyReleasePublicPlugin = (enabled: boolean): Plugin => {
 
 export default defineConfig(({ mode }) => {
   const environment = loadEnv(mode, configDir, '')
+  const liveVideoProvider = environment.VITE_LIVE_VIDEO_PROVIDER || (mode === 'production' ? 'bilibili' : 'local')
   const externalMedia = environment.VITE_MEDIA_BASE_URL?.startsWith('https://') ?? false
+  const excludeUserMedia = externalMedia || liveVideoProvider === 'bilibili'
   const publicSiteUrl = environment.VITE_PUBLIC_SITE_URL || 'http://127.0.0.1:5173'
   const logger = createLogger()
   const warn = logger.warn
@@ -152,7 +154,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       videoRangePlugin(),
       siteMetaPlugin(publicSiteUrl),
-      copyReleasePublicPlugin(externalMedia),
+      copyReleasePublicPlugin(excludeUserMedia),
       react(),
     ],
   }

@@ -40,31 +40,36 @@ const walk = (directory) => readdirSync(directory, { withFileTypes: true }).flat
 
 let publicSiteUrl
 let mediaBaseUrl
+const liveVideoProvider = (process.env.VITE_LIVE_VIDEO_PROVIDER || 'bilibili').trim().toLowerCase()
 try {
   publicSiteUrl = requireHttps('VITE_PUBLIC_SITE_URL')
-  mediaBaseUrl = requireHttps('VITE_MEDIA_BASE_URL')
+  mediaBaseUrl = liveVideoProvider === 'local' ? requireHttps('VITE_MEDIA_BASE_URL') : undefined
 } catch (error) {
   console.error(`[release] ${error instanceof Error ? error.message : error}`)
   process.exit(1)
 }
 
 run('npm', ['test'], 'unit tests')
-run('npm', ['run', 'media:verify'], 'media metadata verification')
+if (liveVideoProvider === 'local') {
+  run('npm', ['run', 'media:verify'], 'media metadata verification')
+} else {
+  console.log('\n[release] Bilibili embed mode; skipping local MP4 metadata verification')
+}
 run('npm', ['run', 'build'], 'production application build')
 
-const mediaOrigin = new URL(mediaBaseUrl).origin
+const mediaOrigins = mediaBaseUrl ? new URL(mediaBaseUrl).origin : ''
 for (const filename of ['index.html', 'robots.txt', 'sitemap.xml', '_headers']) {
   const file = join(dist, filename)
   const content = readFileSync(file, 'utf8')
     .replaceAll('__PUBLIC_SITE_URL__', publicSiteUrl)
-    .replaceAll('__MEDIA_ORIGIN__', mediaOrigin)
+    .replaceAll('__MEDIA_ORIGINS__', mediaOrigins)
   writeFileSync(file, content)
 }
 
 const files = walk(dist)
 const unresolvedTokens = files
   .filter((file) => ['.html', '.txt', '.xml', ''].includes(extname(file)))
-  .filter((file) => readFileSync(file, 'utf8').includes('__PUBLIC_SITE_URL__') || readFileSync(file, 'utf8').includes('__MEDIA_ORIGIN__'))
+  .filter((file) => readFileSync(file, 'utf8').includes('__PUBLIC_SITE_URL__') || readFileSync(file, 'utf8').includes('__MEDIA_ORIGINS__'))
 if (unresolvedTokens.length) {
   console.error(`[release] unresolved release tokens:\n${unresolvedTokens.join('\n')}`)
   process.exit(1)

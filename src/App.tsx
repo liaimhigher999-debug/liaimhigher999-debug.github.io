@@ -847,16 +847,18 @@ const StageTransition = ({
       aria-label="From the album rooms to the live stage"
       className={`stage-transition ${reducedMotion ? 'is-reduced' : ''}`}
     >
-      <video
-        aria-hidden="true"
-        className="stage-transition__preload"
-        muted
-        playsInline
-        poster={openingScene.liveVideo.poster}
-        preload="auto"
-        src={openingScene.liveVideo.sources.high}
-        tabIndex={-1}
-      />
+      {appEnvironment.liveVideoProvider === 'local' ? (
+        <video
+          aria-hidden="true"
+          className="stage-transition__preload"
+          muted
+          playsInline
+          poster={openingScene.liveVideo.poster}
+          preload="auto"
+          src={openingScene.liveVideo.sources.high}
+          tabIndex={-1}
+        />
+      ) : null}
 
       <div className="stage-transition__room" aria-hidden="true">
         <div className="stage-transition__copy">
@@ -921,16 +923,18 @@ const LivePrelude = ({ onEnter }: { onEnter: (tourIndex?: number) => void }) => 
 
   return (
     <section aria-label="At Their Very Best live preview" className="live-prelude">
-      <video
-        aria-hidden="true"
-        className="live-prelude__preload"
-        muted
-        playsInline
-        poster={openingScene.liveVideo.poster}
-        preload="auto"
-        src={openingScene.liveVideo.sources.high}
-        tabIndex={-1}
-      />
+      {appEnvironment.liveVideoProvider === 'local' ? (
+        <video
+          aria-hidden="true"
+          className="live-prelude__preload"
+          muted
+          playsInline
+          poster={openingScene.liveVideo.poster}
+          preload="auto"
+          src={openingScene.liveVideo.sources.high}
+          tabIndex={-1}
+        />
+      ) : null}
       <div className="live-prelude__rails" aria-hidden="true">
         <i />
         <i />
@@ -1017,6 +1021,7 @@ const TourHouse = ({
   const entranceMs = reducedMotion ? 180 : LIVE_ENTRANCE_MS
   const exitMs = reducedMotion ? 180 : LIVE_EXIT_MS
   const closingQuoteMs = reducedMotion ? 2200 : LIVE_CLOSING_QUOTE_MS
+  const usesEmbeddedVideo = appEnvironment.liveVideoProvider === 'bilibili' && Boolean(scene.liveVideo.embed)
 
   const clearSceneTimers = useCallback(() => {
     if (entranceTimeout.current) {
@@ -1073,6 +1078,12 @@ const TourHouse = ({
     entranceTimeout.current = null
     const video = videoRef.current
 
+    if (usesEmbeddedVideo) {
+      setVideoPaused(false)
+      setPhase('playing')
+      return
+    }
+
     if (video && !videoError) {
       try {
         video.currentTime = 0
@@ -1088,7 +1099,7 @@ const TourHouse = ({
 
     setVideoPaused(false)
     setPhase('playing')
-  }, [onLivePlaybackChange, videoError])
+  }, [onLivePlaybackChange, usesEmbeddedVideo, videoError])
 
   const startLiveVideo = useCallback(() => {
     if (phase !== 'armed' || !scene.liveVideo.enabled) {
@@ -1102,7 +1113,7 @@ const TourHouse = ({
     onLivePlaybackChange(true)
 
     const video = videoRef.current
-    if (video) {
+    if (video && !usesEmbeddedVideo) {
       video.pause()
       video.volume = 0
       video.muted = false
@@ -1121,7 +1132,7 @@ const TourHouse = ({
     }
 
     entranceTimeout.current = window.setTimeout(finishEntrance, entranceMs)
-  }, [clearSceneTimers, entranceMs, finishEntrance, onLivePlaybackChange, phase, scene.liveVideo.enabled])
+  }, [clearSceneTimers, entranceMs, finishEntrance, onLivePlaybackChange, phase, scene.liveVideo.enabled, usesEmbeddedVideo])
 
   const finishLiveVideo = useCallback(() => {
     if (phase === 'leaving') {
@@ -1313,6 +1324,7 @@ const TourHouse = ({
   }, [])
 
   const controlsVisible = phase === 'playing' || (phase === 'leaving' && !scene.closingQuote)
+  const localControlsVisible = controlsVisible && !usesEmbeddedVideo
   const progressMax = duration > 0 ? duration : 0
   const displayedTime = isScrubbing ? scrubTime : currentTime
   const progressValue = progressMax > 0 ? Math.min(displayedTime, progressMax) : 0
@@ -1354,7 +1366,7 @@ const TourHouse = ({
   }, [syncVideoProgress])
 
   const revealVideoControls = useCallback(() => {
-    if (!controlsVisible || videoError) {
+    if (!localControlsVisible || videoError) {
       return
     }
 
@@ -1371,7 +1383,7 @@ const TourHouse = ({
       },
       controlsLocked ? 2800 : 2200,
     )
-  }, [controlsLocked, controlsVisible, videoError])
+  }, [controlsLocked, localControlsVisible, videoError])
 
   const toggleControlsLock = useCallback(() => {
     const nextLocked = !controlsLocked
@@ -1389,17 +1401,17 @@ const TourHouse = ({
   }, [controlsLocked])
 
   useEffect(() => {
-    if (!controlsVisible) {
+    if (!localControlsVisible) {
       setControlsRevealed(false)
       return
     }
 
     revealVideoControls()
-  }, [controlsVisible, revealVideoControls, scene.id])
+  }, [localControlsVisible, revealVideoControls, scene.id])
 
   useEffect(() => {
-    onControlsVisibilityChange(controlsVisible && controlsRevealed && !controlsLocked)
-  }, [controlsLocked, controlsRevealed, controlsVisible, onControlsVisibilityChange])
+    onControlsVisibilityChange(localControlsVisible && controlsRevealed && !controlsLocked)
+  }, [controlsLocked, controlsRevealed, localControlsVisible, onControlsVisibilityChange])
 
   const toggleVideoFromScreen = useCallback(() => {
     revealVideoControls()
@@ -1407,7 +1419,7 @@ const TourHouse = ({
   }, [revealVideoControls, toggleVideoPause])
 
   useEffect(() => {
-    if (!controlsVisible || videoError) {
+    if (!localControlsVisible || videoError) {
       return
     }
 
@@ -1453,7 +1465,7 @@ const TourHouse = ({
 
     window.addEventListener('keydown', handlePlayerKey)
     return () => window.removeEventListener('keydown', handlePlayerKey)
-  }, [controlsVisible, revealVideoControls, skipVideo, toggleVideoPause, videoError])
+  }, [localControlsVisible, revealVideoControls, skipVideo, toggleVideoPause, videoError])
 
   return (
     <section
@@ -1463,7 +1475,8 @@ const TourHouse = ({
         `tour-stage--effect-${scene.entranceEffect}`,
         `tour-stage--phase-${phase}`,
         phase !== 'armed' ? 'is-activated' : '',
-        controlsVisible && !controlsRevealed && !controlsLocked ? 'tour-stage--controls-hidden' : '',
+        localControlsVisible && !controlsRevealed && !controlsLocked ? 'tour-stage--controls-hidden' : '',
+        usesEmbeddedVideo ? 'tour-stage--embedded-video' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -1471,7 +1484,7 @@ const TourHouse = ({
       onMouseMove={revealVideoControls}
       onTouchStart={revealVideoControls}
     >
-      {scene.liveVideo.enabled ? (
+      {scene.liveVideo.enabled && !usesEmbeddedVideo ? (
         <video
           className="tour-stage__live-video"
           onClick={toggleVideoFromScreen}
@@ -1488,6 +1501,27 @@ const TourHouse = ({
           ref={videoRef}
           src={scene.liveVideo.sources[videoQuality]}
         />
+      ) : null}
+      {scene.liveVideo.enabled && usesEmbeddedVideo && scene.liveVideo.embed && (phase === 'playing' || phase === 'leaving') ? (
+        <div className="tour-stage__embed-shell" aria-label={`${scene.song} Bilibili embedded player`}>
+          <iframe
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            allowFullScreen
+            className="tour-stage__embed-player"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={scene.liveVideo.embed.src}
+            title={`${scene.song} - Bilibili embedded player`}
+          />
+          <div className="tour-stage__embed-actions" aria-label="Embedded live navigation">
+            <button onClick={exitLiveVideo} type="button">
+              BACK TO ACT
+            </button>
+            <button onClick={finishLiveVideo} type="button">
+              {scene.order === tourScenes.length ? 'FINISH THE NIGHT' : 'NEXT ACT'}
+            </button>
+          </div>
+        </div>
       ) : null}
       <div className="tour-stage__effect" aria-hidden="true">
         <span />
@@ -1551,7 +1585,7 @@ const TourHouse = ({
           <figcaption>THE1975</figcaption>
         </figure>
       ) : null}
-      {controlsVisible && !videoError ? (
+      {localControlsVisible && !videoError ? (
         <>
           <button
             aria-label={controlsLocked ? 'Unlock video controls' : 'Lock video controls'}
@@ -2302,9 +2336,13 @@ export const App = () => {
   useEffect(() => {
     setLiveVideoActive(false)
     setLiveControlsVisible(false)
-  }, [experience.activeTourIndex, experience.phase])
+  }, [experience.activeTourIndex, experience.phase, appEnvironment.liveVideoProvider])
 
   useEffect(() => {
+    if (appEnvironment.liveVideoProvider !== 'local') {
+      return
+    }
+
     if (experience.phase !== 'tour' && experience.phase !== 'livePrelude') {
       return
     }

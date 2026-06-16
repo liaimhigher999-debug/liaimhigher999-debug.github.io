@@ -1,7 +1,14 @@
 import type { MediaAsset, TourScene } from './types'
 import { appEnvironment } from '../env'
 
-const liveVideo = (filename: string, alt: string): MediaAsset => {
+const bilibiliEmbed = (bvid: string, page = 1) => ({
+  provider: 'bilibili' as const,
+  bvid,
+  page,
+  src: `https://player.bilibili.com/player.html?bvid=${bvid}&page=${page}&high_quality=1&danmaku=0&autoplay=1`,
+})
+
+const liveVideo = (filename: string, alt: string, bvid: string): MediaAsset => {
   const webPrefix = appEnvironment.mediaBaseUrl.startsWith('/') ? '/web' : ''
   return {
     kind: 'video',
@@ -9,6 +16,7 @@ const liveVideo = (filename: string, alt: string): MediaAsset => {
       high: `${appEnvironment.mediaBaseUrl}${webPrefix}/1080/${filename}`,
       standard: `${appEnvironment.mediaBaseUrl}${webPrefix}/720/${filename}`,
     },
+    embed: bilibiliEmbed(bvid),
     poster: `${appEnvironment.mediaBaseUrl}/posters/${filename.replace(/\.mp4$/, '.jpg')}`,
     enabled: true,
     alt,
@@ -41,7 +49,7 @@ export const tourScenes: TourScene[] = [
     visual: 'house-lights',
     triggerLabel: 'LIGHT THE HOUSE',
     entranceEffect: 'happiness-lights',
-    liveVideo: liveVideo('01-happiness.mp4', 'Happiness live at Madison Square Garden'),
+    liveVideo: liveVideo('01-happiness.mp4', 'Happiness live at Madison Square Garden', 'BV1Lej36qE3j'),
   }),
   tourScene({
     id: 'too-shy-screen',
@@ -56,7 +64,7 @@ export const tourScenes: TourScene[] = [
     visual: 'television',
     triggerLabel: 'OPEN THE CAMERA',
     entranceEffect: 'too-shy-screen',
-    liveVideo: liveVideo('02-if-youre-too-shy.mp4', "If You're Too Shy live at Madison Square Garden"),
+    liveVideo: liveVideo('02-if-youre-too-shy.mp4', "If You're Too Shy live at Madison Square Garden", 'BV1dYj36TEBs'),
   }),
   tourScene({
     id: 'not-living-browser',
@@ -71,7 +79,7 @@ export const tourScenes: TourScene[] = [
     visual: 'objects',
     triggerLabel: 'FOLLOW THE NOTICE',
     entranceEffect: 'not-living-browser',
-    liveVideo: liveVideo('03-its-not-living.mp4', "It's Not Living live at Madison Square Garden"),
+    liveVideo: liveVideo('03-its-not-living.mp4', "It's Not Living live at Madison Square Garden", 'BV1dYj36TESJ'),
   }),
   tourScene({
     id: 'paris-window',
@@ -86,7 +94,7 @@ export const tourScenes: TourScene[] = [
     visual: 'fog',
     triggerLabel: 'OPEN THE WINDOW',
     entranceEffect: 'paris-window',
-    liveVideo: liveVideo('04-paris.mp4', 'Paris live at Madison Square Garden'),
+    liveVideo: liveVideo('04-paris.mp4', 'Paris live at Madison Square Garden', 'BV1tDj36dExq'),
   }),
   tourScene({
     id: 'robbers-flash',
@@ -101,7 +109,7 @@ export const tourScenes: TourScene[] = [
     visual: 'flashback',
     triggerLabel: 'TAKE THE FLASH',
     entranceEffect: 'robbers-flash',
-    liveVideo: liveVideo('05-robbers.mp4', 'Robbers live at Madison Square Garden'),
+    liveVideo: liveVideo('05-robbers.mp4', 'Robbers live at Madison Square Garden', 'BV1mDj36REnd'),
   }),
   tourScene({
     id: 'the-sound-finale',
@@ -116,7 +124,7 @@ export const tourScenes: TourScene[] = [
     visual: 'finale',
     triggerLabel: 'START THE PULSE',
     entranceEffect: 'sound-finale',
-    liveVideo: liveVideo('06-the-sound.mp4', 'The Sound live at Madison Square Garden'),
+    liveVideo: liveVideo('06-the-sound.mp4', 'The Sound live at Madison Square Garden', 'BV1u2j36bEsM'),
   }),
   tourScene({
     id: 'together-afterglow',
@@ -131,7 +139,7 @@ export const tourScenes: TourScene[] = [
     visual: 'grass',
     triggerLabel: 'STEP OUTSIDE',
     entranceEffect: 'together-afterglow',
-    liveVideo: liveVideo('07-when-we-are-together.mp4', 'When We Are Together live at Madison Square Garden'),
+    liveVideo: liveVideo('07-when-we-are-together.mp4', 'When We Are Together live at Madison Square Garden', 'BV1u2j36bExX'),
     closingQuote: {
       kicker: 'AFTER THE LAST SONG',
       body: 'The only time I feel I might get better is when we are together.',
