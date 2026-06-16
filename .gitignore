@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.playwright-cli/
+output/
+test-results/
+dummy-non-existing-folder/
+The 1975 Live Set/
+*.tsbuildinfo
+*.mp3
+scripts/*.log
+.env
+.env.local
+.env.*.local
+public/assets/user-media/*
+!public/assets/user-media/README.md

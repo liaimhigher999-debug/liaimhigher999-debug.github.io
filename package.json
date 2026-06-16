@@ -1,0 +1,31 @@
+{
+  "name": "the-1975-eras",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build:release": "node scripts/build-release.mjs",
+    "media:prepare": "node scripts/prepare-live-media.mjs",
+    "media:verify": "node scripts/verify-live-media.mjs",
+    "media:verify:decode": "node scripts/verify-live-media.mjs --decode",
+    "media:verify:remote": "node scripts/verify-remote-media.mjs",
+    "test": "vitest run src",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.9.2",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "~5.8.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.9"
+  }
+}
