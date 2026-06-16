@@ -37,8 +37,8 @@ This repository includes `.github/workflows/deploy-pages.yml`. After creating th
 
 1. Enable GitHub Pages with **Source: GitHub Actions**.
 2. Add repository variables:
-   - `VITE_PUBLIC_SITE_URL`: final HTTPS site URL
    - `VITE_MEDIA_BASE_URL`: final HTTPS media prefix
+   - `VITE_PUBLIC_SITE_URL`: optional override when using a custom domain
 3. Push `main`.
 
 Use a root Pages site such as `https://<username>.github.io/` or a custom domain. A project path such as `https://<username>.github.io/<repo>/` needs extra base-path work because the current app uses root-relative static asset URLs.
