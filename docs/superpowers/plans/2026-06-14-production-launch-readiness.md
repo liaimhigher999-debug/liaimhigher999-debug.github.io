@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fix sharing reliably, serve the seven concert videos at desktop-first 1080p quality with dependable seeking, and take the complete fan experience through a production-grade launch audit and deployment.
+**Goal:** Serve the seven concert videos at desktop-first 1080p quality with dependable seeking, and take the complete fan experience through a production-grade launch audit and deployment.
 
-**Architecture:** Keep the Vite/React application as a small static site, but move all concert video variants to a dedicated Cloudflare R2 custom domain. The player receives explicit 1080p and 720p sources from environment-driven media URLs; sharing and media verification move into small testable modules. Cloudflare Pages serves the site shell, while R2/CDN serves versioned video objects with byte-range support and long-lived caching.
+**Architecture:** Keep the Vite/React application as a small static site, but move all concert video variants to a dedicated Cloudflare R2 custom domain. The player receives explicit 1080p and 720p sources from environment-driven media URLs; media verification moves into small testable modules. Cloudflare Pages serves the site shell, while R2/CDN serves versioned video objects with byte-range support and long-lived caching.
 
 **Tech Stack:** React 19, TypeScript, Vite 6, Vitest, Playwright, FFmpeg/ffprobe, Cloudflare Pages, Cloudflare R2.
 
@@ -13,7 +13,6 @@
 ## Audit Baseline
 
 - Current unit baseline: `37` tests pass and `npm run build` succeeds.
-- The current share flow has a confirmed failure: when `navigator.share()` exists but rejects, it reports `SHARE CANCELLED` and never attempts clipboard fallback.
 - All seven current production video files are `1280x720`, not 1080p. They range from `52.2 MB` to `99.6 MB` and dominate the `483.7 MB` build.
 - All seven current Web MP4 files are H.264/AAC, have `moov` before `mdat`, and preserve the edited source durations.
 - The edited 1080p masters use keyframe gaps of roughly `8.3s` (`8.6s` on the 23.976 fps clip), so production variants need a shorter fixed GOP to make long-distance seeking consistently responsive.
@@ -31,26 +30,9 @@
 - The final public domain and media domain are release inputs. Production builds must fail clearly when either required environment variable is missing.
 - Concert footage must be cleared for public use before launch. The site remains identified as a non-commercial fan project.
 
-## Task 1: Make Sharing Reliable And Testable
+## Task 1: Remove Archive Sharing
 
-**Files:**
-- Create: `src/domain/share.ts`
-- Create: `src/domain/share.test.ts`
-- Modify: `src/App.tsx`
-
-- [ ] Extract a `shareNight()` function from `ArchiveExperience` into `src/domain/share.ts`.
-- [ ] Define a small result union: `shared`, `copied`, `cancelled`, or `failed`.
-- [ ] Build the public share URL from `VITE_PUBLIC_SITE_URL` in production and `window.location.origin + window.location.pathname` during local development.
-- [ ] Attempt Web Share first only when `navigator.share` exists.
-- [ ] Treat `AbortError` as a genuine user cancellation and do not show an error.
-- [ ] When Web Share throws any other error, continue automatically to clipboard copy.
-- [ ] Attempt `navigator.clipboard.writeText()` only in a secure context.
-- [ ] Add a final hidden-textarea plus `document.execCommand('copy')` fallback for browsers where Clipboard is unavailable or denied.
-- [ ] Return `failed` only after all automatic routes fail; reveal a compact selectable URL field so the visitor can copy manually.
-- [ ] Keep the existing visual language and map results to `NIGHT SHARED`, `LINK COPIED`, `SHARE CANCELLED`, or `COPY THIS LINK`.
-- [ ] Reuse the same copy helper in `ArchiveDrawer`; remove its separate fragile clipboard-only implementation.
-- [ ] Add unit tests covering native success, native rejection followed by clipboard success, Clipboard rejection followed by legacy copy, explicit `AbortError`, and total failure.
-- [ ] Verify: `npm test -- src/domain/share.test.ts`.
+**Status:** Superseded. Archive ticket sharing is removed from both local and public versions.
 
 ## Task 2: Add Production URL Configuration
 
@@ -151,7 +133,6 @@
 
 **Files:**
 - Create: `playwright.config.ts`
-- Create: `e2e/share.spec.ts`
 - Create: `e2e/video-player.spec.ts`
 - Create: `e2e/journey.spec.ts`
 - Create: `e2e/archive.spec.ts`
@@ -159,7 +140,6 @@
 
 - [ ] Install Playwright as a dev dependency and pin the browser version in the lockfile.
 - [ ] Add `npm run test:e2e` against `vite preview` or `scripts/serve-dist.mjs`.
-- [ ] Test share success, system-share rejection with clipboard fallback, clipboard denial with legacy fallback, and user cancellation.
 - [ ] Test all video controls: play/pause button, Space, click-to-pause, drag seek forward, drag seek backward, +/-10, volume, lock, exit, and auto-hide/reveal.
 - [ ] Assert `video.currentTime` tracks the progress control after seeking, not merely the visual thumb position.
 - [ ] Test video end advances exactly once and the seventh scene enters the quote, signature, and Archive flow.
@@ -220,10 +200,9 @@
 - [ ] Upload the media prefix to R2 before deploying the page that references it.
 - [ ] Run unit, build, E2E, media verification, and range checks against staging.
 - [ ] Complete one uninterrupted start-to-Archive journey on Chrome and Edge desktop.
-- [ ] Complete targeted share checks on Chrome/Edge desktop and one Web Share-capable mobile browser.
 - [ ] Confirm all seven scenes start within the agreed buffering threshold on a normal broadband profile.
 - [ ] Confirm seek forward/backward works near 10%, 50%, and 90% for all seven videos.
-- [ ] Confirm the site is usable when Web Share, Clipboard, and reduced motion are each independently unavailable/enabled.
+- [ ] Confirm the site is usable when Clipboard and reduced motion are each independently unavailable/enabled.
 - [ ] Add lightweight privacy-respecting error monitoring only if the user approves its provider; do not block launch on analytics.
 - [ ] Document the deployed site version and media prefix so rollback can restore the previous Pages deployment and previous R2 prefix independently.
 - [ ] Launch only after the footage permission check is complete.
@@ -234,7 +213,6 @@
 - [ ] `npm run media:verify` passes all seven sources, fourteen outputs, and seven posters.
 - [ ] `npm run build:release` passes and `dist` contains no video files.
 - [ ] `npm run test:e2e` passes at both desktop target sizes.
-- [ ] Production share succeeds or falls back to a copied/manual link; it never dead-ends on a non-cancel error.
 - [ ] Production video requests return `206` for byte ranges.
 - [ ] Desktop defaults to 1080p HQ and every scene can seek accurately in both directions.
 - [ ] No console errors, CSP violations, broken assets, overlaps, or unreadable text remain.
@@ -246,5 +224,4 @@
 - Cloudflare Pages limits: https://developers.cloudflare.com/pages/platform/limits/
 - Cloudflare R2 custom domains: https://developers.cloudflare.com/r2/buckets/public-buckets/#custom-domains
 - Cloudflare R2 CORS: https://developers.cloudflare.com/r2/buckets/cors/
-- MDN Web Share API: https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share
 - MDN Clipboard `writeText`: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard/writeText
