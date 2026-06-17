@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite --host 127.0.0.1 --port 5173",
     "build": "tsc -b && vite build",
+    "build:friend": "node scripts/build-friend-package.mjs",
     "build:release": "node scripts/build-release.mjs",
     "media:prepare": "node scripts/prepare-live-media.mjs",
     "media:verify": "node scripts/verify-live-media.mjs",

@@ -7,6 +7,20 @@ describe('application environment', () => {
       mediaBaseUrl: '/assets/user-media/video/msg',
       publicSiteUrl: undefined,
       liveVideoProvider: 'local',
+      fixedVideoQuality: undefined,
+    })
+  })
+
+  it('keeps development builds on local MP4 even when a release provider is still set', () => {
+    expect(resolveAppEnvironment({
+      DEV: true,
+      PROD: false,
+      VITE_LIVE_VIDEO_PROVIDER: 'bilibili',
+    })).toEqual({
+      mediaBaseUrl: '/assets/user-media/video/msg',
+      publicSiteUrl: undefined,
+      liveVideoProvider: 'local',
+      fixedVideoQuality: undefined,
     })
   })
 
@@ -15,6 +29,7 @@ describe('application environment', () => {
       mediaBaseUrl: '/assets/user-media/video/msg',
       publicSiteUrl: undefined,
       liveVideoProvider: 'bilibili',
+      fixedVideoQuality: undefined,
     })
   })
 
@@ -29,6 +44,21 @@ describe('application environment', () => {
       mediaBaseUrl: 'https://media.example/live/v1',
       publicSiteUrl: 'https://example.com',
       liveVideoProvider: 'local',
+      fixedVideoQuality: undefined,
+    })
+  })
+
+  it('can lock friend packages to the high quality local video source', () => {
+    expect(resolveAppEnvironment({
+      DEV: false,
+      PROD: true,
+      VITE_LIVE_VIDEO_PROVIDER: 'local',
+      VITE_FIXED_VIDEO_QUALITY: 'high',
+    })).toEqual({
+      mediaBaseUrl: '/assets/user-media/video/msg',
+      publicSiteUrl: undefined,
+      liveVideoProvider: 'local',
+      fixedVideoQuality: 'high',
     })
   })
 

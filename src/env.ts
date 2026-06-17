@@ -4,17 +4,23 @@ type EnvironmentInput = {
   VITE_MEDIA_BASE_URL?: string
   VITE_PUBLIC_SITE_URL?: string
   VITE_LIVE_VIDEO_PROVIDER?: string
+  VITE_FIXED_VIDEO_QUALITY?: string
 }
 
 export type AppEnvironment = {
   mediaBaseUrl: string
   publicSiteUrl?: string
   liveVideoProvider: 'local' | 'bilibili'
+  fixedVideoQuality?: 'high'
 }
 
 const normalizeUrl = (value?: string) => value?.trim().replace(/\/+$/, '') || undefined
 
 const resolveLiveVideoProvider = (environment: EnvironmentInput) => {
+  if (environment.DEV) {
+    return 'local'
+  }
+
   const configured = environment.VITE_LIVE_VIDEO_PROVIDER?.trim().toLowerCase()
   if (configured === 'local' || configured === 'bilibili') {
     return configured
@@ -47,6 +53,7 @@ export const resolveAppEnvironment = (environment: EnvironmentInput): AppEnviron
   mediaBaseUrl: normalizeUrl(environment.VITE_MEDIA_BASE_URL) ?? '/assets/user-media/video/msg',
   publicSiteUrl: normalizeUrl(environment.VITE_PUBLIC_SITE_URL),
   liveVideoProvider: resolveLiveVideoProvider(environment),
+  fixedVideoQuality: environment.VITE_FIXED_VIDEO_QUALITY?.trim().toLowerCase() === 'high' ? 'high' : undefined,
 })
 
 export const validateReleaseEnvironment = (environment: EnvironmentInput): AppEnvironment => {

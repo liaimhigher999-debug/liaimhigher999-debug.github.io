@@ -32,10 +32,8 @@ import {
   saveTicketTheme,
 } from './domain/persistence'
 import {
-  buildShareUrl,
   copyText,
   createBrowserShareEnvironment,
-  shareNight,
 } from './domain/share'
 import {
   createTicketBackSvg,
@@ -995,6 +993,10 @@ const TourHouse = ({
   reducedMotion: boolean
 }) => {
   const initialVideoQuality = useMemo(() => {
+    if (appEnvironment.fixedVideoQuality) {
+      return appEnvironment.fixedVideoQuality
+    }
+
     const connection = (navigator as Navigator & {
       connection?: { effectiveType?: string; saveData?: boolean }
     }).connection
@@ -1022,6 +1024,7 @@ const TourHouse = ({
   const exitMs = reducedMotion ? 180 : LIVE_EXIT_MS
   const closingQuoteMs = reducedMotion ? 2200 : LIVE_CLOSING_QUOTE_MS
   const usesEmbeddedVideo = appEnvironment.liveVideoProvider === 'bilibili' && Boolean(scene.liveVideo.embed)
+  const fixedVideoQuality = appEnvironment.fixedVideoQuality
 
   const clearSceneTimers = useCallback(() => {
     if (entranceTimeout.current) {
@@ -1293,6 +1296,10 @@ const TourHouse = ({
   }, [])
 
   const changeVideoQuality = useCallback((quality: VideoQuality) => {
+    if (fixedVideoQuality) {
+      return
+    }
+
     if (quality === videoQuality) {
       return
     }
@@ -1305,7 +1312,7 @@ const TourHouse = ({
       }
     }
     setVideoQuality(quality)
-  }, [videoQuality])
+  }, [fixedVideoQuality, videoQuality])
 
   const changeVideoVolume = useCallback((value: number) => {
     if (!Number.isFinite(value)) {
@@ -1674,6 +1681,15 @@ const TourHouse = ({
               >
                 +10
               </button>
+              <button
+                aria-label={scene.order === tourScenes.length ? 'Finish the night' : 'Next act'}
+                className="tour-stage__transport-button tour-stage__next-act"
+                disabled={controlsLocked || !controlsRevealed || phase !== 'playing'}
+                onClick={finishLiveVideo}
+                type="button"
+              >
+                {scene.order === tourScenes.length ? 'FINISH' : 'NEXT ACT'}
+              </button>
             </div>
             <div className="tour-stage__readout">
               <span className="tour-stage__timecode">
@@ -1688,16 +1704,18 @@ const TourHouse = ({
               <span className="tour-stage__quality" aria-label="Video quality">
                 <button
                   aria-pressed={videoQuality === 'high'}
-                  disabled={controlsLocked || !controlsRevealed}
+                  disabled={controlsLocked || !controlsRevealed || Boolean(fixedVideoQuality)}
                   onClick={() => changeVideoQuality('high')}
                   type="button"
                 >1080P</button>
-                <button
-                  aria-pressed={videoQuality === 'standard'}
-                  disabled={controlsLocked || !controlsRevealed}
-                  onClick={() => changeVideoQuality('standard')}
-                  type="button"
-                >720P</button>
+                {!fixedVideoQuality ? (
+                  <button
+                    aria-pressed={videoQuality === 'standard'}
+                    disabled={controlsLocked || !controlsRevealed}
+                    onClick={() => changeVideoQuality('standard')}
+                    type="button"
+                  >720P</button>
+                ) : null}
               </span>
             </div>
             <label className="tour-stage__volume" style={volumeStyle}>
@@ -1873,7 +1891,6 @@ const JourneyTicket = ({
   const [flipped, setFlipped] = useState(false)
   const [name, setName] = useState(profile.anonymous ? '' : profile.name ?? '')
   const [status, setStatus] = useState('')
-  const [manualShareUrl, setManualShareUrl] = useState('')
   const downloadMenuRef = useRef<HTMLDetailsElement>(null)
   const fallbackTheme = ticketThemes.some(({ id }) => ticket.deepestEra.startsWith(id))
     ? ticket.deepestEra.slice(0, 4) as TicketThemeId
@@ -1965,23 +1982,6 @@ const JourneyTicket = ({
     event.currentTarget.style.setProperty('--ticket-tilt-y', '0deg')
     event.currentTarget.style.setProperty('--ticket-light-x', '50%')
     event.currentTarget.style.setProperty('--ticket-light-y', '50%')
-  }
-
-  const shareTicket = async () => {
-    const environment = createBrowserShareEnvironment()
-    const shareData = {
-      title: 'The Night You Were Here',
-      text: `THE 1975 / ${ticket.admitOne} / ${ticket.journeyId}`,
-      url: buildShareUrl(environment, appEnvironment.publicSiteUrl),
-    }
-    const result = await shareNight(environment, shareData)
-    setManualShareUrl(result === 'failed' ? shareData.url : '')
-    setStatus({
-      shared: 'NIGHT SHARED',
-      copied: 'LINK COPIED',
-      cancelled: 'SHARE CANCELLED',
-      failed: 'COPY THIS LINK',
-    }[result])
   }
 
   const saveName = (event: FormEvent<HTMLFormElement>) => {
@@ -2093,21 +2093,9 @@ const JourneyTicket = ({
             <button onClick={() => downloadTicket('both')} type="button">BOTH</button>
           </div>
         </details>
-        <button onClick={shareTicket} type="button">SHARE THE NIGHT</button>
         <button onClick={() => setEditing(true)} type="button">EDIT NAME</button>
         <span aria-live="polite">{status}</span>
       </div>
-      {manualShareUrl ? (
-        <label className="journey-ticket__manual-share">
-          <span>PUBLIC LINK</span>
-          <input
-            aria-label="Public link to copy"
-            onFocus={(event) => event.currentTarget.select()}
-            readOnly
-            value={manualShareUrl}
-          />
-        </label>
-      ) : null}
       {editing ? (
         <form className="journey-ticket__edit" onSubmit={saveName}>
           <label htmlFor="ticket-name">NAME ON TICKET</label>

@@ -3895,6 +3895,14 @@ a {
   font-size: 0.54rem;
 }
 
+.tour-stage__transport-button.tour-stage__next-act {
+  width: 4.85rem;
+  min-width: 4.85rem;
+  color: #f2dcc0;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
 .tour-stage__player-icon {
   position: relative;
   display: block;
@@ -4898,29 +4906,6 @@ a {
   font-family: var(--mono);
   font-size: 0.5rem;
   letter-spacing: 0.14em;
-}
-
-.journey-ticket__manual-share {
-  display: grid;
-  width: min(84rem, 100%);
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.8rem;
-  align-items: center;
-  margin: 0.75rem auto 0;
-  color: rgb(243 238 230 / 62%);
-  font-family: var(--mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.14em;
-}
-
-.journey-ticket__manual-share input {
-  min-width: 0;
-  padding: 0.72rem 0.8rem;
-  border: 1px solid rgb(243 238 230 / 28%);
-  color: #f3eee6;
-  background: rgb(5 5 5 / 72%);
-  font: inherit;
-  letter-spacing: 0.04em;
 }
 
 .journey-ticket__edit {
@@ -6626,6 +6611,11 @@ a {
   .tour-stage__transport-button.tour-stage__skip {
     width: 2.2rem;
     min-width: 2.2rem;
+  }
+
+  .tour-stage__transport-button.tour-stage__next-act {
+    width: 4.45rem;
+    min-width: 4.45rem;
   }
 
   .tour-stage__readout {

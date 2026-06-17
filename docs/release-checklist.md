@@ -38,7 +38,6 @@ Upload `dist/` to GitHub Pages or Cloudflare Pages. Do not upload the source or 
 ## Browser Acceptance
 
 - Chrome and Edge at `1355x898` and `1440x1000`.
-- Share succeeds or falls back to a copied/manual link.
 - Every public act opens its Bilibili embedded player after the entrance effect.
 - Bilibili playback controls remain usable inside the embedded player.
 - `BACK TO ACT`, `NEXT ACT`, and `FINISH THE NIGHT` move through the public live flow.

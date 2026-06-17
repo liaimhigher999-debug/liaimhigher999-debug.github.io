@@ -7,7 +7,6 @@ test('archive and ticket remain inside the desktop viewport', async ({ page }) =
   await page.getByRole('button', { name: 'SKIP TO ARCHIVE' }).click()
 
   await expect(page.getByText('CHOOSE YOUR EDITION')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'SHARE THE NIGHT' })).toBeVisible()
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   expect(errors).toEqual([])
 })

@@ -2,6 +2,7 @@ node_modules/
 dist/
 .playwright-cli/
 output/
+release/
 test-results/
 dummy-non-existing-folder/
 The 1975 Live Set/

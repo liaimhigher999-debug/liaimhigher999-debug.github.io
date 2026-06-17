@@ -1,13 +1,34 @@
 import { createReadStream, existsSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
-import { networkInterfaces } from 'node:os'
+import { spawn } from 'node:child_process'
 import { extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const host = '0.0.0.0'
-const port = 5173
+const host = process.env.HOST ?? '127.0.0.1'
+const port = Number(process.env.PORT ?? 4173)
 const root = resolve(fileURLToPath(new URL('../dist/', import.meta.url)))
 const fallback = join(root, 'index.html')
+const siteUrl = `http://127.0.0.1:${port}/`
+
+const openBrowser = () => {
+  if (process.env.OPEN_BROWSER !== 'true') {
+    return
+  }
+
+  const command = process.platform === 'win32'
+    ? 'cmd'
+    : process.platform === 'darwin'
+      ? 'open'
+      : 'xdg-open'
+  const args = process.platform === 'win32'
+    ? ['/c', 'start', '', siteUrl]
+    : [siteUrl]
+  const child = spawn(command, args, {
+    detached: true,
+    stdio: 'ignore',
+  })
+  child.unref()
+}
 
 const contentTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -107,14 +128,6 @@ createServer((request, response) => {
   const filePath = existsSync(candidate) && statSync(candidate).isFile() ? candidate : fallback
   sendFile(request, response, filePath)
 }).listen(port, host, () => {
-  console.log(`The 1975 local site is available at http://127.0.0.1:${port}/`)
-
-  const addresses = Object.values(networkInterfaces())
-    .flat()
-    .filter((address) => address?.family === 'IPv4' && !address.internal)
-    .map((address) => address.address)
-
-  addresses.forEach((address) => {
-    console.log(`Phone preview on the same Wi-Fi: http://${address}:${port}/`)
-  })
+  console.log(`The 1975 built-site preview is available at ${siteUrl}`)
+  openBrowser()
 })

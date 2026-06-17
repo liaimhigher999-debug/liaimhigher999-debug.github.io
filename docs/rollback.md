@@ -6,7 +6,7 @@ The public site shell and Bilibili embed configuration are versioned in Git. Loc
 
 1. In Cloudflare Pages, select the last verified deployment.
 2. Promote that deployment to production.
-3. Confirm the home page, Archive, and share metadata load.
+3. Confirm the home page and Archive load.
 
 ## Media Rollback
 
